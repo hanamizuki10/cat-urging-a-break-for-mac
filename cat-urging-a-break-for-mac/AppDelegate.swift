@@ -13,9 +13,27 @@ import SwiftUI
 class AppDelegate: NSObject, NSApplicationDelegate {
 
     var window: NSWindow!
+    // イベント発生時時間
+    var eventDate:Date = Date()
+    
+    
 
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        
+        
+        NSEvent.addGlobalMonitorForEvents(matching: .any, handler: { (event) in
+            self.eventDate = Date()
+            Swift.print("addGlobalMonitorForEvents")
+        })
+        NSEvent.addLocalMonitorForEvents(matching: .any, handler: { (event) in
+            self.eventDate = Date()
+            Swift.print("addLocalMonitorForEvents")
+            return event
+        })
+
+        
+        
         // Create the SwiftUI view that provides the window contents.
         let contentView = ContentView()
 
