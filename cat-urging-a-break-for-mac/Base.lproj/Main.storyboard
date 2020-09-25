@@ -14,10 +14,10 @@
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" title="仕事監視Cat" systemMenu="apple" id="uQy-DD-JDr">
                                     <items>
-                                        <menuItem title="仕事監視Catを開く" id="5kV-Vb-QxS">
+                                        <menuItem title="About 仕事監視Cat" id="5kV-Vb-QxS">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
-                                                <action selector="orderFrontStandardAboutPanel:" target="Ady-hI-5gd" id="Exp-CZ-Vem"/>
+                                                <action selector="orderFrontStandardAboutPanel:" target="Ady-hI-5gd" id="1vf-i5-Hz1"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="VOq-y0-SEH"/>
