@@ -9,10 +9,32 @@
 import SwiftUI
 
 struct ContentView: View {
-    var body: some View {
-        Text("Hello, World!")
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+    @State var workTimeInterval:Int = 0
+
+    var workMonitoringTimer: Timer {
+        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) {_ in
+            self.workTimeInterval += 1            
+        }
     }
+
+    var body: some View {
+        VStack {
+            Text("仕事経過時間")
+                .font(.body)
+            DateTimeView(timeInterval:self.workTimeInterval)
+            .frame(width: 100.0)
+            .onAppear(perform: {
+                _ = self.workMonitoringTimer
+            })
+            Button(action: resetFunc) {
+                Text("リセット")
+            }
+        }
+    }
+    func resetFunc(){
+        self.workTimeInterval = 0
+    }
+
 }
 
 
