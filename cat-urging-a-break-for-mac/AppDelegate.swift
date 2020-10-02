@@ -8,6 +8,7 @@
 
 import Cocoa
 import SwiftUI
+import UserNotifications
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -24,13 +25,32 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         NSEvent.addGlobalMonitorForEvents(matching: .any, handler: { (event) in
             self.eventDate = Date()
-            Swift.print("addGlobalMonitorForEvents")
+            //Swift.print("addGlobalMonitorForEvents")
         })
         NSEvent.addLocalMonitorForEvents(matching: .any, handler: { (event) in
             self.eventDate = Date()
-            Swift.print("addLocalMonitorForEvents")
+            //Swift.print("addLocalMonitorForEvents")
             return event
         })
+        //=================================================================
+        // https://qiita.com/aokiplayer/items/3f02453af743a54de718
+        // iOS 10
+        // notification center (singleton)
+        let center = UNUserNotificationCenter.current()
+
+        // ------------------------------------
+        // 前準備: ユーザに通知の許可を求める
+        // ------------------------------------
+        // request to notify for user
+        center.requestAuthorization(options: [.alert, .badge, .sound]) { (granted, error) in
+            if granted {
+                print("通知許可")
+            } else {
+                print("通知拒否")
+            }
+        }
+        // https://qiita.com/yamataku29/items/f45e77de3026d4c50016
+        //=================================================================
 
         
         
