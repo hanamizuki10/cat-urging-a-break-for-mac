@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0E7273AD251DDC440054472C /* sipposowasowa.gif in Resources */ = {isa = PBXBuildFile; fileRef = 0E7273AC251DDC440054472C /* sipposowasowa.gif */; };
-		0E7273AF251DDCA30054472C /* nobinobicat.png in Resources */ = {isa = PBXBuildFile; fileRef = 0E7273AE251DDCA30054472C /* nobinobicat.png */; };
 		0E921FDD251DBD690029AC3E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E921FDC251DBD690029AC3E /* AppDelegate.swift */; };
 		0E921FDF251DBD690029AC3E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E921FDE251DBD690029AC3E /* ContentView.swift */; };
 		0E921FE1251DBD6C0029AC3E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0E921FE0251DBD6C0029AC3E /* Assets.xcassets */; };
@@ -17,9 +15,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0E7273AC251DDC440054472C /* sipposowasowa.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = sipposowasowa.gif; path = "../../../../20200902_休憩を促す猫の絵/sipposowasowa.gif"; sourceTree = "<group>"; };
-		0E7273AE251DDCA30054472C /* nobinobicat.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = nobinobicat.png; path = "../../../../20200902_休憩を促す猫の絵/nobinobicat.png"; sourceTree = "<group>"; };
-		0E921FD9251DBD690029AC3E /* cat-urging-a-break-for-mac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "cat-urging-a-break-for-mac.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0E921FD9251DBD690029AC3E /* 仕事監視Cat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "仕事監視Cat.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0E921FDC251DBD690029AC3E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0E921FDE251DBD690029AC3E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		0E921FE0251DBD6C0029AC3E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -51,7 +47,7 @@
 		0E921FDA251DBD690029AC3E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0E921FD9251DBD690029AC3E /* cat-urging-a-break-for-mac.app */,
+				0E921FD9251DBD690029AC3E /* 仕事監視Cat.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -63,8 +59,6 @@
 				0E921FDE251DBD690029AC3E /* ContentView.swift */,
 				0E921FE0251DBD6C0029AC3E /* Assets.xcassets */,
 				0E921FE5251DBD6C0029AC3E /* Main.storyboard */,
-				0E7273AE251DDCA30054472C /* nobinobicat.png */,
-				0E7273AC251DDC440054472C /* sipposowasowa.gif */,
 				0E921FE8251DBD6C0029AC3E /* Info.plist */,
 				0E921FE9251DBD6C0029AC3E /* cat_urging_a_break_for_mac.entitlements */,
 				0E921FE2251DBD6C0029AC3E /* Preview Content */,
@@ -97,7 +91,7 @@
 			);
 			name = "cat-urging-a-break-for-mac";
 			productName = "cat-urging-a-break-for-mac";
-			productReference = 0E921FD9251DBD690029AC3E /* cat-urging-a-break-for-mac.app */;
+			productReference = 0E921FD9251DBD690029AC3E /* 仕事監視Cat.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -138,10 +132,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0E7273AD251DDC440054472C /* sipposowasowa.gif in Resources */,
 				0E921FE7251DBD6C0029AC3E /* Main.storyboard in Resources */,
 				0E921FE4251DBD6C0029AC3E /* Preview Assets.xcassets in Resources */,
-				0E7273AF251DDCA30054472C /* nobinobicat.png in Resources */,
 				0E921FE1251DBD6C0029AC3E /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -304,7 +296,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.hanamizuki.cat-urging-a-break-for-mac";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "仕事監視Cat";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -326,7 +318,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.hanamizuki.cat-urging-a-break-for-mac";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "仕事監視Cat";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
