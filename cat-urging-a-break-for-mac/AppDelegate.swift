@@ -72,11 +72,4 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // ウインドウのクローズとともにアプリケーションを終了させる
         return true
     }
-
-    func applicationWillTerminate(_ aNotification: Notification) {
-        // Insert code here to tear down your application
-    }
-
-
 }
-
