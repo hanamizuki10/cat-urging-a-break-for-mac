@@ -9,60 +9,39 @@ import SwiftUI
 import UserNotifications
 import AppKit
 struct ContentView: View {
-    // 仕事レベル別経過時間
-    let workTimes: [Int: Double] = [
-        0: 0,
-        // 仕事レベル1(仕事開始した直後）〜10分以内
-        1: (10 * 60),
-        // 仕事レベル2(仕事開始から30分経過後）
-        2: (30 * 60),
-        // 仕事レベル3(仕事開始から1時間経過後）
-        3: (1 * 60 * 60),
-        // 仕事レベル4(仕事開始から1時間30分経過後）
-        4: (1 * 60 * 60)+(30 * 60)
-    ]
-    // 猫のつぶやき(ルール=0:休憩,1以降:仕事中)
-    let catTweets: [Int: String] = [
-        0: "（休憩は良いことにゃ〜リフレッシュにゃ〜)",
-        1: "（お仕事がんばってにゃ〜ねむねむにゃ…)",
-        2: "（お仕事に集中することは良いことにゃ〜！）",
-        3: "（結構、長い間仕事してるにゃね？\n集中力すごいのにゃ〜）",
-        4: "（なんか長時間仕事しすぎにゃ！\nそれじゃあ肩凝るにゃ！\nそろそろ構にゃ〜！！）"
-    ]
-
-    let defaultCatImg: NSImage = NSImage(imageLiteralResourceName: "coffeeblakecat1")
     
-    // 猫状態(ルール=0:休憩,1以降:仕事中)
-    let catFramesImgs: [Int: [NSImage]] = [
-        0:[
-            NSImage(imageLiteralResourceName: "coffeeblakecat1")
-            ,NSImage(imageLiteralResourceName: "coffeeblakecat2")
-        ],
-        1:[
-            NSImage(imageLiteralResourceName: "sleepcat1")
-            ,NSImage(imageLiteralResourceName: "sleepcat2")
-        ],
-        2:[
-            NSImage(imageLiteralResourceName: "nobicat1")
-            ,NSImage(imageLiteralResourceName: "nobicat2")
-        ],
-        3:[
-            NSImage(imageLiteralResourceName: "sowasowa1")
-            ,NSImage(imageLiteralResourceName: "sowasowa2")
-        ],
-        4:[
-            NSImage(imageLiteralResourceName: "runcat1")
-            ,NSImage(imageLiteralResourceName: "runcat2")
-            ,NSImage(imageLiteralResourceName: "runcat3")
-            ,NSImage(imageLiteralResourceName: "runcat4")
-            ,NSImage(imageLiteralResourceName: "runcat3")
-            ,NSImage(imageLiteralResourceName: "runcat2")
-        ]
-    ]
+    var appDelegate: AppDelegate
+    var judgeConfigs: [WorkJudge] = []
+    // 状態変更に関係する判断設定
+    class WorkJudge {
+        // 経過時間
+        var workTime: Double = 0
+        // 経過時間を経過時に呟く内容
+        var catTweet: String = ""
+        // 経過時間を経過時に表示する画像データ
+        var catFramesImg: [NSImage] = []
+        // 画像データを切り替えるタイミング
+        var switchInterval: Double = 0
+        init(workTime:Double, catTweet: String, catFramesImg: [NSImage], switchInterval: Double) {
+            self.workTime = workTime
+            self.catTweet = catTweet
+            self.catFramesImg = catFramesImg
+            self.switchInterval = switchInterval
+        }
+    }
+    // 定数:デフォルト猫画像
+    let DEFAULT_CAT_IMG: NSImage = NSImage(imageLiteralResourceName: "coffeeblakecat1")
     // 定数:通知時間感覚(30分おき)
     let NOTICE_TIME_INTERVAL:Double = (30 * 60)
+    // 定数:仕事監視タイマーの実行間隔
+    let WORK_MONITORING_TIMER_INTERVAL:Double = 1
+    // 定数:高速切り替えタイマーの実行間隔（パラパラ表示させたい猫画像用）
+    let HIGH_SPEED_SWITCHINGTIMER_INTERVAL: Double = 0.1
+
     // 画面構築に利用する変数:仕事経過時間（秒数）
     @State var workTimeInterval:Int = 0
+    // 画面構築に利用する変数:休憩経過時間（秒数）
+    @State var breakTimeInterval:Int = 0
     // 画面構築に利用する変数:ステータス
     @State var statusText:String = "仕事中"
     // 画面構築に利用する変数:仕事レベル
@@ -71,40 +50,80 @@ struct ContentView: View {
     @State var catTweet:String =  "（お仕事がんばってにゃ〜ねむねむにゃ…)"
     // 画面構築に利用する変数:通知した時間
     @State var notificationDate:Date = Date()
-    
+    // 画像のINDEX値
+    @State var imgIndex:Int = 0
+
+    init() {
+        Swift.print("初期設定！")
+        self.appDelegate = NSApplication.shared.delegate as! AppDelegate
+
+        // 仕事レベル0(休憩中)
+        let judge0 = WorkJudge(workTime: 0, catTweet: "（休憩は良いことにゃ〜リフレッシュにゃ〜)", catFramesImg: [
+            NSImage(imageLiteralResourceName: "coffeeblakecat1")
+            ,NSImage(imageLiteralResourceName: "coffeeblakecat2")
+        ], switchInterval:self.WORK_MONITORING_TIMER_INTERVAL)
+        // 仕事レベル1(仕事開始した直後）〜10分以内
+        let judge1 = WorkJudge(workTime: (10 * 60), catTweet: "（お仕事がんばってにゃ〜ねむねむにゃ…)", catFramesImg: [
+            NSImage(imageLiteralResourceName: "sleepcat1")
+            ,NSImage(imageLiteralResourceName: "sleepcat2")
+        ], switchInterval:self.WORK_MONITORING_TIMER_INTERVAL)
+        // 仕事レベル2(仕事開始から30分経過後）
+        let judge2 = WorkJudge(workTime: (30 * 60), catTweet: "（お仕事に集中することは良いことにゃ〜！）", catFramesImg: [
+            NSImage(imageLiteralResourceName: "nobicat1")
+            ,NSImage(imageLiteralResourceName: "nobicat2")
+        ], switchInterval:self.WORK_MONITORING_TIMER_INTERVAL)
+        // 仕事レベル3(仕事開始から1時間経過後）
+        let judge3 = WorkJudge(workTime: (1 * 60 * 60), catTweet: "（結構、長い間仕事してるにゃね？\n集中力すごいのにゃ〜）", catFramesImg: [
+            NSImage(imageLiteralResourceName: "sowasowa1")
+            ,NSImage(imageLiteralResourceName: "sowasowa2")
+        ], switchInterval:self.WORK_MONITORING_TIMER_INTERVAL)
+        // 仕事レベル4(仕事開始から1時間30分経過後）
+        let judge4 = WorkJudge(workTime: (1 * 60 * 60)+(30 * 60), catTweet: "（なんか長時間仕事しすぎにゃ！\nそれじゃあ肩凝るにゃ！\nそろそろ構にゃ〜！！）", catFramesImg: [
+            NSImage(imageLiteralResourceName: "runcat1")
+            ,NSImage(imageLiteralResourceName: "runcat2")
+            ,NSImage(imageLiteralResourceName: "runcat3")
+            ,NSImage(imageLiteralResourceName: "runcat4")
+            ,NSImage(imageLiteralResourceName: "runcat3")
+            ,NSImage(imageLiteralResourceName: "runcat2")
+        ], switchInterval:self.HIGH_SPEED_SWITCHINGTIMER_INTERVAL)
+
+        judgeConfigs.append(judge0)
+        judgeConfigs.append(judge1)
+        judgeConfigs.append(judge2)
+        judgeConfigs.append(judge3)
+        judgeConfigs.append(judge4)
+    }
 
 
-    @State var catFramesCount:Int = 0
-
-    var catFramesCountTimer: Timer {
-        Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) {_ in
-            if ( self.workLevel == 4) {
-                self.catFramesCount = (self.catFramesCount+1) %
-                    self.getCatImageCount()
-            }
+    // 画像を高速に切り替える用のタイマー
+    var imgHighSpeedSwitchingTimer: Timer {
+        Timer.scheduledTimer(withTimeInterval: HIGH_SPEED_SWITCHINGTIMER_INTERVAL, repeats: true) {_ in
+            updateCatFramesCount(withTimeInterval: HIGH_SPEED_SWITCHINGTIMER_INTERVAL)
         }
     }
 
+    // 作業監視モニター
     var workMonitoringTimer: Timer {
-        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) {_ in
-            if ( self.workLevel != 4) {
-                self.catFramesCount = (self.catFramesCount+1) %
-                    self.getCatImageCount()
-            }
+        Timer.scheduledTimer(withTimeInterval: WORK_MONITORING_TIMER_INTERVAL, repeats: true) {_ in
+            updateCatFramesCount(withTimeInterval: WORK_MONITORING_TIMER_INTERVAL)
             // 最後にイベント(マウスやキーボード動かす)経過してから
-            if let workTimeLimit = self.workTimes[1] {
-                if (isWorking(TimeInterval: workTimeLimit)) {
+            if (self.workLevel < self.judgeConfigs.count) {
+                let judge = self.judgeConfigs[self.workLevel]
+                if (isWorking(TimeInterval: judge.workTime)) {
                     self.workTimeInterval += 1
                     if(self.statusText == "休憩中") {
-                        Swift.print(ToStringNowTime() + ", 休憩終了")
+                        Swift.print(ToStringTime(date:Date()) + ", 休憩終了, 最終休憩経過時間=" + ToStringTime(timeInterval: self.breakTimeInterval))
+                        self.breakTimeInterval = 0
                         self.statusText = "仕事中"
                         upWorkLevel()
                     }
                 } else if(self.statusText == "仕事中") {
-                    Swift.print(ToStringNowTime() + ", 休憩開始, 仕事経過時間=" + ToStringTime(timeInterval: self.workTimeInterval))
+                    Swift.print(ToStringTime(date:Date()) + ", 休憩開始, 最終仕事経過時間=" + ToStringTime(timeInterval: self.workTimeInterval))
+                    self.breakTimeInterval += 1
                     self.statusText = "休憩中"
                     resetWorkTimeIntervalFunc()
                 }
+
             }
         }
     }
@@ -113,8 +132,9 @@ struct ContentView: View {
     var workCheckTimer: Timer {
         Timer.scheduledTimer(withTimeInterval: 30, repeats: true) {_ in
             if ( self.statusText == "仕事中" ) {
-                if let workTimeLimit = self.workTimes[self.workLevel] {
-                    if ( isContinuousWorkFor(TimeInterval: workTimeLimit) ) {
+                if (self.workLevel < self.judgeConfigs.count) {
+                    let judge = self.judgeConfigs[self.workLevel]
+                    if ( isContinuousWorkFor(TimeInterval: judge.workTime) ) {
                         upWorkLevel()
                     }
                 }
@@ -128,6 +148,7 @@ struct ContentView: View {
             Text("仕事監視Cat")
                 .font(.title)
                 .multilineTextAlignment(.leading)
+            Divider()
             HStack {
                 VStack {
                     VStack {
@@ -143,10 +164,10 @@ struct ContentView: View {
                         Text(ToStringTime(timeInterval: self.workTimeInterval))
                             .font(.body)
                     }
+                    .padding(.bottom)
                     Button(action: resetWorkTimeIntervalFunc) {
                         Text("リセット")
                     }
-                    .padding(.bottom)
 
                 }
                 .frame(width: 100.0)
@@ -162,10 +183,22 @@ struct ContentView: View {
                 }
                 .frame(width: 250.0)
             }
+            Divider()
+            HStack {
+                Text("休憩経過時間->")
+                    .font(.caption)
+                Text(ToStringTime(timeInterval: self.breakTimeInterval))
+                    .font(.caption)
+                Text(", 最後にイベント検知した時刻->")
+                    .font(.caption)
+                Text(ToStringTime(date: self.appDelegate.eventDate))
+                    .font(.caption)
+
+            }
         }
         .frame(width: 400.0)
         .onAppear(perform: {
-            _ = self.catFramesCountTimer
+            _ = self.imgHighSpeedSwitchingTimer
         })
         .onAppear(perform: {
             _ = self.workMonitoringTimer
@@ -211,33 +244,37 @@ struct ContentView: View {
     }
     // 猫画像情報の取得
     func getCatImage()->NSImage{
-        if let imgs = self.catFramesImgs[self.workLevel] {
-            return imgs[self.catFramesCount]
+        if (self.workLevel < self.judgeConfigs.count) {
+            let judge = self.judgeConfigs[self.workLevel]
+            return judge.catFramesImg[self.imgIndex]
         }
-        return self.defaultCatImg
+        return DEFAULT_CAT_IMG
     }
     // 定義されている猫画像情報の個数取得
-    func getCatImageCount()->Int{
-        if let imgs = self.catFramesImgs[self.workLevel] {
-            return imgs.count
+    func updateCatFramesCount(withTimeInterval: Double) {
+        if (self.workLevel < self.judgeConfigs.count) {
+            let judge = self.judgeConfigs[self.workLevel]
+            if (judge.switchInterval == withTimeInterval) {
+                self.imgIndex = (self.imgIndex+1) %
+                    judge.catFramesImg.count
+            }
         }
-        return 0
+
     }
     // 仕事レベルUp
     func upWorkLevel() {
         self.workLevel += 1
-        if ( self.workLevel >= (self.workTimes.count-1) ){
+        if (self.workLevel == self.judgeConfigs.count) {
             if (isItTimeToNotify(TimeInterval: NOTICE_TIME_INTERVAL) ) {
                 // 前回の通知時間との差分が30分以上ある場合
                 // 通知する
                 Notify()
-                Swift.print("[仕事中]通知=>" + ToStringNowTime())
+                Swift.print("[仕事中]通知=>" + ToStringTime(date:Date()))
             }
-            self.workLevel = (self.workTimes.count - 1)
+            self.workLevel = self.judgeConfigs.count - 1
         }
-        if let tweet = self.catTweets[self.workLevel] {
-            self.catTweet = tweet
-        }
+        let judge = self.judgeConfigs[self.workLevel]
+        self.catTweet = judge.catTweet
     }
     // 作業時間をリセットする
     func resetWorkTimeIntervalFunc(){
@@ -255,25 +292,20 @@ struct ContentView: View {
         formatter.dateFormat = "HH:mm:ss"
         return formatter.string(from: dispTime)
     }
-    func ToStringNowTime()->String{
+    func ToStringTime(date:Date)->String{
         let formatter = DateFormatter()
         formatter.locale = Locale.current
         formatter.calendar = Calendar(identifier: .japanese)
         formatter.dateFormat = "HH:mm:ss"
-        return formatter.string(from: Date())
+        return formatter.string(from: date)
     }
 
-
-    // 最後にイベントが発生してから経過した時間を取得する
-    func getElapsedTimeLastEvent()->TimeInterval{
-        let appDelegate = NSApplication.shared.delegate as! AppDelegate
-        return appDelegate.eventDate.timeIntervalSinceNow
-    }
 
     // 現在動作中であるかどうか確認する
     //（最後にイベント経過してから指定時間以内ならマウスやキーボード動かし作業中）
     func isWorking(TimeInterval interval:Double)->Bool{
-        let timeIntervalSince = getElapsedTimeLastEvent()
+        // 最後にイベントが発生してから経過した時間を取得する
+        let timeIntervalSince = appDelegate.eventDate.timeIntervalSinceNow
         //Swift.print(String(-timeIntervalSince))
         if ( -timeIntervalSince < interval ) {
             // 前回のイベント発生時と比べて10分未満である。
