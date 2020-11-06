@@ -15,7 +15,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0E921FD9251DBD690029AC3E /* 仕事監視Cat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "仕事監視Cat.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0E921FD9251DBD690029AC3E /* cat-urging-a-break-for-mac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "cat-urging-a-break-for-mac.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0E921FDC251DBD690029AC3E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0E921FDE251DBD690029AC3E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		0E921FE0251DBD6C0029AC3E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -47,7 +47,7 @@
 		0E921FDA251DBD690029AC3E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0E921FD9251DBD690029AC3E /* 仕事監視Cat.app */,
+				0E921FD9251DBD690029AC3E /* cat-urging-a-break-for-mac.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -91,7 +91,7 @@
 			);
 			name = "cat-urging-a-break-for-mac";
 			productName = "cat-urging-a-break-for-mac";
-			productReference = 0E921FD9251DBD690029AC3E /* 仕事監視Cat.app */;
+			productReference = 0E921FD9251DBD690029AC3E /* cat-urging-a-break-for-mac.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -296,7 +296,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.hanamizuki.cat-urging-a-break-for-mac";
-				PRODUCT_NAME = "仕事監視Cat";
+				PRODUCT_NAME = "cat-urging-a-break-for-mac";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -318,7 +318,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.hanamizuki.cat-urging-a-break-for-mac";
-				PRODUCT_NAME = "仕事監視Cat";
+				PRODUCT_NAME = "cat-urging-a-break-for-mac";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
