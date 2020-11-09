@@ -31,6 +31,8 @@ struct ContentView: View {
     }
     // 定数:デフォルト猫画像
     let DEFAULT_CAT_IMG: NSImage = NSImage(imageLiteralResourceName: "coffeeblakecat1")
+    // 定数:仕事中か休憩中かを判断するキーとなるINDEX値
+    let WORK_OR_BREK_JUDGE_INDEX: Int = 1
     // 定数:通知時間感覚(30分おき)
     let NOTICE_TIME_INTERVAL:Double = (30 * 60)
     // 定数:仕事監視タイマーの実行間隔
@@ -107,8 +109,8 @@ struct ContentView: View {
         Timer.scheduledTimer(withTimeInterval: WORK_MONITORING_TIMER_INTERVAL, repeats: true) {_ in
             updateCatFramesCount(withTimeInterval: WORK_MONITORING_TIMER_INTERVAL)
             // 最後にイベント(マウスやキーボード動かす)経過してから
-            if (self.workLevel < self.judgeConfigs.count) {
-                let judge = self.judgeConfigs[self.workLevel]
+            if (WORK_OR_BREK_JUDGE_INDEX < self.judgeConfigs.count) {
+                let judge = self.judgeConfigs[WORK_OR_BREK_JUDGE_INDEX]
                 if (isWorking(TimeInterval: judge.workTime)) {
                     self.workTimeInterval += 1
                     if(self.statusText == "休憩中") {
@@ -306,11 +308,12 @@ struct ContentView: View {
     func isWorking(TimeInterval interval:Double)->Bool{
         // 最後にイベントが発生してから経過した時間を取得する
         let timeIntervalSince = appDelegate.eventDate.timeIntervalSinceNow
-        //Swift.print(String(-timeIntervalSince))
         if ( -timeIntervalSince < interval ) {
             // 前回のイベント発生時と比べて10分未満である。
+            Swift.print(String(-timeIntervalSince) + " true")
             return true
         }
+        Swift.print(String(-timeIntervalSince) + " false")
         return false
     }
     // 指定時間以上の連続作業中であるかどうかを確認する
