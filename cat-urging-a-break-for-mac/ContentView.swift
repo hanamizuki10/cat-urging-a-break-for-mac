@@ -31,8 +31,11 @@ struct ContentView: View {
     }
     // 定数:デフォルト猫画像
     let DEFAULT_CAT_IMG: NSImage = NSImage(imageLiteralResourceName: "coffeeblakecat1")
-    // 定数:仕事中か休憩中かを判断するキーとなるINDEX値
-    let WORK_OR_BREK_JUDGE_INDEX: Int = 1
+    // 画面構築に利用する変数:猫の呟き
+    let DEFAULT_CAT_TWEET: String = "（お仕事がんばってにゃ〜ねむねむにゃ…)"
+
+    // 定数:仕事中か休憩中かを判断するキーとなる時間
+    let WORK_OR_BREK_JUDGE_TIME: Double = (10 * 60)
     // 定数:通知時間感覚(30分おき)
     let NOTICE_TIME_INTERVAL:Double = (30 * 60)
     // 定数:仕事監視タイマーの実行間隔
@@ -48,8 +51,6 @@ struct ContentView: View {
     @State var statusText:String = "仕事中"
     // 画面構築に利用する変数:仕事レベル
     @State var workLevel:Int = 1
-    // 画面構築に利用する変数:猫の呟き
-    @State var catTweet:String =  "（お仕事がんばってにゃ〜ねむねむにゃ…)"
     // 画面構築に利用する変数:通知した時間
     @State var notificationDate:Date = Date()
     // 画像のINDEX値
@@ -64,8 +65,8 @@ struct ContentView: View {
             NSImage(imageLiteralResourceName: "coffeeblakecat1")
             ,NSImage(imageLiteralResourceName: "coffeeblakecat2")
         ], switchInterval:self.WORK_MONITORING_TIMER_INTERVAL)
-        // 仕事レベル1(仕事開始した直後）〜10分以内
-        let judge1 = WorkJudge(workTime: (10 * 60), catTweet: "（お仕事がんばってにゃ〜ねむねむにゃ…)", catFramesImg: [
+        // 仕事レベル1(仕事開始した直後）〜30分以内
+        let judge1 = WorkJudge(workTime: 0, catTweet: "（お仕事がんばってにゃ〜ねむねむにゃ…)", catFramesImg: [
             NSImage(imageLiteralResourceName: "sleepcat1")
             ,NSImage(imageLiteralResourceName: "sleepcat2")
         ], switchInterval:self.WORK_MONITORING_TIMER_INTERVAL)
@@ -109,24 +110,24 @@ struct ContentView: View {
         Timer.scheduledTimer(withTimeInterval: WORK_MONITORING_TIMER_INTERVAL, repeats: true) {_ in
             updateCatFramesCount(withTimeInterval: WORK_MONITORING_TIMER_INTERVAL)
             // 最後にイベント(マウスやキーボード動かす)経過してから
-            if (WORK_OR_BREK_JUDGE_INDEX < self.judgeConfigs.count) {
-                let judge = self.judgeConfigs[WORK_OR_BREK_JUDGE_INDEX]
-                if (isWorking(TimeInterval: judge.workTime)) {
-                    self.workTimeInterval += 1
-                    if(self.statusText == "休憩中") {
-                        Swift.print(ToStringTime(date:Date()) + ", 休憩終了, 最終休憩経過時間=" + ToStringTime(timeInterval: self.breakTimeInterval))
-                        self.breakTimeInterval = 0
-                        self.statusText = "仕事中"
-                        upWorkLevel()
-                    }
-                } else if(self.statusText == "仕事中") {
-                    Swift.print(ToStringTime(date:Date()) + ", 休憩開始, 最終仕事経過時間=" + ToStringTime(timeInterval: self.workTimeInterval))
-                    self.breakTimeInterval += 1
-                    self.statusText = "休憩中"
-                    resetWorkTimeIntervalFunc()
+            if (isWorking(TimeInterval: WORK_OR_BREK_JUDGE_TIME)) {
+                self.workTimeInterval += 1
+                if(self.statusText == "休憩中") {
+                    Swift.print(ToStringTime(date:Date()) + ", 休憩終了, 最終休憩経過時間=" + ToStringTime(timeInterval: self.breakTimeInterval))
+                    self.breakTimeInterval = 0
+                    self.workTimeInterval = 0
+                    self.statusText = "仕事中"
+                    self.workLevel = 1  // 1は仕事始め
                 }
-
+            } else if(self.statusText == "仕事中") {
+                Swift.print(ToStringTime(date:Date()) + ", 休憩開始, 最終仕事経過時間=" + ToStringTime(timeInterval: self.workTimeInterval))
+                self.breakTimeInterval = 0
+                self.statusText = "休憩中"
+                self.workLevel = 0  // 0は休憩
+            } else if(self.statusText == "休憩中") {
+                self.breakTimeInterval += 1
             }
+
         }
     }
 
@@ -134,10 +135,17 @@ struct ContentView: View {
     var workCheckTimer: Timer {
         Timer.scheduledTimer(withTimeInterval: 30, repeats: true) {_ in
             if ( self.statusText == "仕事中" ) {
-                if (self.workLevel < self.judgeConfigs.count) {
-                    let judge = self.judgeConfigs[self.workLevel]
+                if ((self.workLevel+1) < self.judgeConfigs.count) {
+                    let judge = self.judgeConfigs[(self.workLevel+1)]
                     if ( isContinuousWorkFor(TimeInterval: judge.workTime) ) {
                         upWorkLevel()
+                    }
+                } else {
+                    if (isItTimeToNotify(TimeInterval: NOTICE_TIME_INTERVAL) ) {
+                        // 前回の通知時間との差分が30分以上ある場合
+                        // 通知する
+                        Notify()
+                        Swift.print("[仕事中]通知=>" + ToStringTime(date:Date()))
                     }
                 }
             }
@@ -179,7 +187,7 @@ struct ContentView: View {
                         .scaledToFit()      // 縦横比を維持しながらフレームに収める
                         .frame(width: 100.0, height: 100.0)
 
-                    Text(self.catTweet)
+                    Text(self.getCatTweet())
                         .font(.caption)
                         .frame(height: 50.0)
                 }
@@ -252,6 +260,14 @@ struct ContentView: View {
         }
         return DEFAULT_CAT_IMG
     }
+    // レベルにあった猫のツイートを取得
+    func getCatTweet()->String {
+        if (self.workLevel < self.judgeConfigs.count) {
+            let judge = self.judgeConfigs[self.workLevel]
+            return judge.catTweet
+        }
+        return DEFAULT_CAT_TWEET
+    }
     // 定義されている猫画像情報の個数取得
     func updateCatFramesCount(withTimeInterval: Double) {
         if (self.workLevel < self.judgeConfigs.count) {
@@ -267,16 +283,8 @@ struct ContentView: View {
     func upWorkLevel() {
         self.workLevel += 1
         if (self.workLevel == self.judgeConfigs.count) {
-            if (isItTimeToNotify(TimeInterval: NOTICE_TIME_INTERVAL) ) {
-                // 前回の通知時間との差分が30分以上ある場合
-                // 通知する
-                Notify()
-                Swift.print("[仕事中]通知=>" + ToStringTime(date:Date()))
-            }
             self.workLevel = self.judgeConfigs.count - 1
         }
-        let judge = self.judgeConfigs[self.workLevel]
-        self.catTweet = judge.catTweet
     }
     // 作業時間をリセットする
     func resetWorkTimeIntervalFunc(){
@@ -310,10 +318,10 @@ struct ContentView: View {
         let timeIntervalSince = appDelegate.eventDate.timeIntervalSinceNow
         if ( -timeIntervalSince < interval ) {
             // 前回のイベント発生時と比べて10分未満である。
-            Swift.print(String(-timeIntervalSince) + " true")
+            //Swift.print(String(-timeIntervalSince) + " true")
             return true
         }
-        Swift.print(String(-timeIntervalSince) + " false")
+        //Swift.print(String(-timeIntervalSince) + " false")
         return false
     }
     // 指定時間以上の連続作業中であるかどうかを確認する
