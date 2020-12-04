@@ -256,7 +256,10 @@ struct ContentView: View {
     func getCatImage()->NSImage{
         if (self.workLevel < self.judgeConfigs.count) {
             let judge = self.judgeConfigs[self.workLevel]
-            return judge.catFramesImg[self.imgIndex]
+            if (self.imgIndex < judge.catFramesImg.count) {
+                return judge.catFramesImg[self.imgIndex]
+            }
+            return judge.catFramesImg[0]
         }
         return DEFAULT_CAT_IMG
     }
